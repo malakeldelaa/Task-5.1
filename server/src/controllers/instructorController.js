@@ -69,17 +69,31 @@ export async function getDirectory(req, res, next) {
 // =============================================================================
 export async function searchInstructors(req, res, next) {
   try {
-    const { name, department, role } = req.query || {};
+    const query = req.query || {};
 
-    const allowedValues = { name, department, role };
+    // Only these parameters are allowed.
+    const allowedKeys = ['name', 'department', 'role'];
 
-    for (const value of Object.values(allowedValues)) {
-      if (value !== undefined && typeof value !== 'string') {
-        return res.status(400).json({
-          message: 'Invalid search parameters'
-        });
-      }
+    // Detect unknown or sanitized malicious parameters.
+    const hasUnexpectedKeys = Object.keys(query).some(
+      (key) => !allowedKeys.includes(key)
+    );
+
+    // Detect objects instead of ordinary string values.
+    const hasInvalidValues = allowedKeys.some(
+      (key) => query[key] !== undefined &&
+               typeof query[key] !== 'string'
+    );
+
+    // Malicious or malformed searches return no results.
+    if (hasUnexpectedKeys || hasInvalidValues) {
+      return res.status(200).json({
+        count: 0,
+        instructors: []
+      });
     }
+
+    const { name, department, role } = query;
 
     const filter = {};
 
@@ -95,7 +109,7 @@ export async function searchInstructors(req, res, next) {
       filter.role = role.trim();
     }
 
-    // Reject empty searches instead of returning every instructor.
+    // Preserve empty-search protection.
     if (Object.keys(filter).length === 0) {
       return res.status(400).json({
         message: 'At least one valid search parameter is required'
@@ -110,6 +124,7 @@ export async function searchInstructors(req, res, next) {
       count: instructors.length,
       instructors
     });
+
   } catch (error) {
     next(error);
   }
