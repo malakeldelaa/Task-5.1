@@ -1,14 +1,16 @@
 # Node.js dependencies
 node_modules/
+server/node_modules/
 
 # Build artifacts
 build/
 dist/
 .parcel-cache/
 
-# Environment variables
+# Environment variables and secrets
 .env
-
+.env.*
+!.env.example
 
 # Log files
 *.log
@@ -16,14 +18,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# OS and Editor specific files
+# OS and editor files
 .DS_Store
 Thumbs.db
 .idea/
 *.swp
 *.swo
-
-
-# Server-side specific ignores (if server is in a subfolder)
-server/node_modules/
-server/build/
